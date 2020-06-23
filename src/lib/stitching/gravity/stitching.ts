@@ -25,6 +25,10 @@ export const gravityStitchingEnvironment = (
         partner: Partner
       }
 
+      extend type ArtistSeries {
+        artists(page: Int, size: Int): [Artist]
+      }
+
       extend type Partner {
         viewingRoomsConnection: ViewingRoomConnection
       }
@@ -38,6 +42,32 @@ export const gravityStitchingEnvironment = (
               operation: "query",
               fieldName: "_unused_gravity_secondFactors",
               args: args,
+              context,
+              info,
+            })
+          },
+        },
+      },
+      ArtistSeries: {
+        artists: {
+          fragment: gql`
+          ... on ArtistSeries {
+            artistIDs
+          }
+        `,
+          resolve: ({ artistIDs: ids }, args, context, info) => {
+            if (ids.length === 0) {
+              ids = [null]
+            }
+
+            return info.mergeInfo.delegateToSchema({
+              schema: localSchema,
+              operation: "query",
+              fieldName: "artists",
+              args: {
+                ids,
+                ...args,
+              },
               context,
               info,
             })
